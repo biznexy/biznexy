@@ -1,10 +1,10 @@
 {
-  "name": "@vinkas/nextfire",
+  "name": "@vinkas/biznexy",
   "version": "0.0.3",
   "private": true,
-  "repository": "https://github.com/vinkashq/nextfire",
+  "repository": "https://github.com/biznexy/biznexy",
   "author": "Vinkas",
-  "license": "MIT",
+  "license": "GPL-2.0-only",
   "scripts": {
     "dev": "next dev --turbopack",
     "plugin": "next dev",

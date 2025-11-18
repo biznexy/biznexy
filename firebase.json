@@ -1,6 +1,6 @@
 {
   "apphosting": {
-    "backendId": "nextfire",
+    "backendId": "biznexy",
     "rootDir": "/",
     "ignore": [
       "node_modules",
