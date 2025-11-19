@@ -8,6 +8,12 @@ import { writeFile, unlink } from 'fs/promises'
 import { join } from 'path'
 import { tmpdir } from 'os'
 
+const colorSwatch = z.object({
+  hex: z.string(),
+  titleTextColor: z.string(),
+  bodyTextColor: z.string(),
+})
+
 export const imageGenerateOutputSchema = z.object({
   imageId: z.string(),
   bucketName: z.string(),
@@ -19,12 +25,12 @@ export const imageGenerateOutputSchema = z.object({
   height: z.number(),
   aspectRatio: z.number(),
   colors: z.object({
-    vibrant: z.string().optional(),
-    muted: z.string().optional(),
-    darkVibrant: z.string().optional(),
-    darkMuted: z.string().optional(),
-    lightVibrant: z.string().optional(),
-    lightMuted: z.string().optional(),
+    vibrant: colorSwatch.optional(),
+    muted: colorSwatch.optional(),
+    darkVibrant: colorSwatch.optional(),
+    darkMuted: colorSwatch.optional(),
+    lightVibrant: colorSwatch.optional(),
+    lightMuted: colorSwatch.optional(),
   }).optional()
 })
 
@@ -66,37 +72,57 @@ const generateImage = googleImagen.defineTool(
     const { size, width, height } = imageMetadata
     const aspectRatio = width / height
 
+    type ColorSwatch = {
+      hex: string;
+      titleTextColor: string;
+      bodyTextColor: string;
+    }
+
+    const getColorSwatch = (color: any): ColorSwatch | undefined => {
+      if (!color) return undefined
+      return {
+        hex: color.hex,
+        titleTextColor: color.titleTextColor,
+        bodyTextColor: color.bodyTextColor,
+      }
+    }
+
     // Extract colors using node-vibrant
     let colors: {
-      vibrant?: string;
-      muted?: string;
-      darkVibrant?: string;
-      darkMuted?: string;
-      lightVibrant?: string;
-      lightMuted?: string;
+      vibrant?: ColorSwatch;
+      muted?: ColorSwatch;
+      darkVibrant?: ColorSwatch;
+      darkMuted?: ColorSwatch;
+      lightVibrant?: ColorSwatch;
+      lightMuted?: ColorSwatch;
     } = {}
 
+    const tempFilePath = join(tmpdir(), `${imageId}.${extension}`)
     try {
       // node-vibrant v4 requires a file path in Node.js environment
       // Write buffer to temporary file
-      const tempFilePath = join(tmpdir(), `${imageId}.${extension}`)
       await writeFile(tempFilePath, imageBuffer)
 
       const vibrant = new Vibrant(tempFilePath)
       const palette = await vibrant.getPalette()
       colors = {
-        vibrant: palette.Vibrant?.hex,
-        muted: palette.Muted?.hex,
-        darkVibrant: palette.DarkVibrant?.hex,
-        darkMuted: palette.DarkMuted?.hex,
-        lightVibrant: palette.LightVibrant?.hex,
-        lightMuted: palette.LightMuted?.hex,
+        vibrant: getColorSwatch(palette.Vibrant),
+        muted: getColorSwatch(palette.Muted),
+        darkVibrant: getColorSwatch(palette.DarkVibrant),
+        darkMuted: getColorSwatch(palette.DarkMuted),
+        lightVibrant: getColorSwatch(palette.LightVibrant),
+        lightMuted: getColorSwatch(palette.LightMuted),
       }
-
-      // Clean up temporary file
-      await unlink(tempFilePath)
     } catch (error) {
       console.warn('Failed to extract colors from image:', error)
+    } finally {
+      // Clean up temporary file
+      try {
+        await unlink(tempFilePath)
+      } catch (unlinkError) {
+        // Ignore cleanup errors - file might not exist or already be deleted
+        console.warn('Failed to clean up temporary file:', unlinkError)
+      }
     }
     const fileName = `${imageId}.${extension}`
     const storagePath = `images/${fileName}`
