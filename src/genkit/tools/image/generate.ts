@@ -4,6 +4,9 @@ import { z } from "genkit"
 import { getSharp } from "next/dist/server/image-optimizer"
 import parseDataURL from 'data-urls'
 import { Vibrant } from 'node-vibrant/node'
+import { writeFile, unlink } from 'fs/promises'
+import { join } from 'path'
+import { tmpdir } from 'os'
 
 export const imageGenerateOutputSchema = z.object({
   imageId: z.string(),
@@ -56,6 +59,8 @@ const generateImage = googleImagen.defineTool(
     const mimeType = parsedData.mimeType.toString()
     const extension = mimeType.split('/')[1] || "png"
 
+    const imageId = crypto.randomUUID()
+
     const sharp = getSharp(1)
     const imageMetadata = await sharp(imageBuffer).metadata()
     const { size, width, height } = imageMetadata
@@ -72,7 +77,13 @@ const generateImage = googleImagen.defineTool(
     } = {}
 
     try {
-      const palette = await Vibrant.from(imageBuffer).getPalette()
+      // node-vibrant v4 requires a file path in Node.js environment
+      // Write buffer to temporary file
+      const tempFilePath = join(tmpdir(), `${imageId}.${extension}`)
+      await writeFile(tempFilePath, imageBuffer)
+
+      const vibrant = new Vibrant(tempFilePath)
+      const palette = await vibrant.getPalette()
       colors = {
         vibrant: palette.Vibrant?.hex,
         muted: palette.Muted?.hex,
@@ -81,11 +92,12 @@ const generateImage = googleImagen.defineTool(
         lightVibrant: palette.LightVibrant?.hex,
         lightMuted: palette.LightMuted?.hex,
       }
+
+      // Clean up temporary file
+      await unlink(tempFilePath)
     } catch (error) {
       console.warn('Failed to extract colors from image:', error)
     }
-
-    const imageId = crypto.randomUUID()
     const fileName = `${imageId}.${extension}`
     const storagePath = `images/${fileName}`
     const file = bucket.file(storagePath)
