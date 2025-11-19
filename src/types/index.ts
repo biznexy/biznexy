@@ -5,3 +5,11 @@ export type User = {
   photoURL?: string;
   disabled: boolean;
 };
+
+export type Role = {
+  id: string;
+  name: string;
+  description?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+};

@@ -8,9 +8,9 @@ import { Vibrant } from 'node-vibrant/node'
 export const imageGenerateOutputSchema = z.object({
   imageId: z.string(),
   bucketName: z.string(),
-  imagePath: z.string(),
+  storagePath: z.string(),
+  fileName: z.string(),
   mimeType: z.string(),
-  extension: z.string(),
   size: z.number(),
   width: z.number(),
   height: z.number(),
@@ -69,7 +69,7 @@ const generateImage = googleImagen.defineTool(
       darkMuted?: string;
       lightVibrant?: string;
       lightMuted?: string;
-    } | undefined
+    } | null = null
 
     try {
       const palette = await Vibrant.from(imageBuffer).getPalette()
@@ -83,27 +83,34 @@ const generateImage = googleImagen.defineTool(
       }
     } catch (error) {
       console.warn('Failed to extract colors from image:', error)
-      // Colors extraction is optional, so we continue without it
     }
 
     const imageId = crypto.randomUUID()
-    const imagePath = `images/${imageId}.${extension}`
-    const file = bucket.file(imagePath)
-    const metadata = {
+    const fileName = `${imageId}.${extension}`
+    const storagePath = `images/${fileName}`
+    const file = bucket.file(storagePath)
+
+    await file.save(imageBuffer, {
+      contentType: mimeType,
+      metadata: {
+        aspectratio: aspectRatio.toString(),
+        width: width?.toString() || '',
+        height: height?.toString() || '',
+      }
+    })
+
+    return {
+      imageId,
+      bucketName: bucket.name,
+      storagePath,
+      fileName,
       mimeType,
       aspectRatio,
       size,
       width,
       height,
+      colors,
     }
-
-    await file.save(imageBuffer, { metadata })
-
-    return Object.assign(
-      { imageId, bucketName: bucket.name, imagePath },
-      metadata,
-      colors ? { colors } : {}
-    )
   }
 )
 
