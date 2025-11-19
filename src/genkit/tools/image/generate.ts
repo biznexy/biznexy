@@ -69,7 +69,7 @@ const generateImage = googleImagen.defineTool(
       darkMuted?: string;
       lightVibrant?: string;
       lightMuted?: string;
-    } | null = null
+    } = {}
 
     try {
       const palette = await Vibrant.from(imageBuffer).getPalette()
