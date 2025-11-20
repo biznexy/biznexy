@@ -52,7 +52,15 @@ export async function getRole(id: string): Promise<Role | null> {
 
 export async function createRole(role: Omit<Role, 'id' | 'createdAt' | 'updatedAt'>): Promise<Role | null> {
   try {
-    const docRef = firestore.collection('roles').doc();
+    const docId = role.name.toLowerCase();
+    const docRef = firestore.collection('roles').doc(docId);
+    
+    // Check if role already exists
+    const existingDoc = await docRef.get();
+    if (existingDoc.exists) {
+      throw new Error(`Role with ID "${docId}" already exists`);
+    }
+    
     const newRole = {
       name: role.name,
       description: role.description || '',
@@ -81,11 +89,15 @@ export async function createRole(role: Omit<Role, 'id' | 'createdAt' | 'updatedA
 
 export async function updateRole(id: string, role: Partial<Omit<Role, 'id' | 'createdAt' | 'updatedAt'>>): Promise<Role | null> {
   try {
+    // Prevent name changes since document ID is based on lowercased name
+    if (role.name !== undefined && role.name.toLowerCase() !== id.toLowerCase()) {
+      throw new Error('Cannot change role name. The document ID is based on the role name.');
+    }
+    
     const updateData: any = {
       updatedAt: FieldValue.serverTimestamp(),
     };
     
-    if (role.name !== undefined) updateData.name = role.name;
     if (role.description !== undefined) updateData.description = role.description;
     
     await firestore.collection('roles').doc(id).update(updateData);

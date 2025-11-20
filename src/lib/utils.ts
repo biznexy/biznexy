@@ -29,6 +29,6 @@ const postRequest = async (url: string, appCheckToken: string, data: any = {}): 
     body: JSON.stringify(data),
     credentials: 'include',
   });
-};
+}
 
 export { cn, getInputValue, clearInput, postRequest }

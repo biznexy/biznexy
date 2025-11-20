@@ -1,8 +1,8 @@
 import GenerateImage from "@/components/generate-image";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
+import ImageGrid from "./image-grid";
 import { firestore } from "@/firebase/server";
 import { DocumentData } from "firebase/firestore";
-import Image from "next/image";
+
 
 export const dynamic = 'force-dynamic'
 
@@ -21,13 +21,7 @@ export default async function Page() {
   return (
     <div className="flex flex-col gap-4 grow">
       <GenerateImage />
-      <div className="grid auto-rows-min gap-4 md:grid-cols-5">
-        {images?.map((image) => (
-          <AspectRatio ratio={image.aspectRatio} key={image.id} className="border">
-            <Image width={image.width} height={image.height} src={image.url} alt={image.prompt} className="rounded-md object-cover" />
-          </AspectRatio>
-        ))}
-      </div>
+      <ImageGrid images={JSON.parse(JSON.stringify(images))} />
     </div>
   )
 }

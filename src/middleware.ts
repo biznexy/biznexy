@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server'
 import { sessionCookie } from './lib/const'
-import { auth } from './firebase/server'
+import { auth, firestore } from './firebase/server'
+import { adminRoleId } from './app/api/admin/seed/roles/route'
 
 const adminPaths = [
   '/admin',
@@ -21,7 +22,7 @@ const pathsRequireAuth = [
 const pathsToCheckRevokedIdToken = [
   '/api/token'
 ]
- 
+
 export default async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
   const headers = request.headers
@@ -44,9 +45,9 @@ export default async function middleware(request: NextRequest) {
   const cookie = request.cookies.get(sessionCookie)
   if (cookie) {
     try {
-       const checkRevoked = pathsToCheckRevokedIdToken.some(path => pathname.startsWith(path))
-       const decodedIdToken = await auth.verifySessionCookie(cookie.value, checkRevoked)
-       userId = decodedIdToken.uid
+      const checkRevoked = pathsToCheckRevokedIdToken.some(path => pathname.startsWith(path))
+      const decodedIdToken = await auth.verifySessionCookie(cookie.value, checkRevoked)
+      userId = decodedIdToken.uid
     } catch {
       deleteSessionCookie = true
     }
@@ -65,6 +66,63 @@ export default async function middleware(request: NextRequest) {
         )
       } else {
         response = NextResponse.redirect(new URL('/auth/login', request.url))
+      }
+    }
+  }
+
+  // Check if user has Admin role for admin paths
+  if (adminPaths.some(path => pathname.startsWith(path))) {
+    if (userId) {
+      try {
+        const userRolesDoc = await firestore.collection('userRoles').doc(userId).get()
+        if (userRolesDoc.exists) {
+          const data = userRolesDoc.data()
+          const roleIds: string[] = data?.roleIds || []
+          const hasAdminRole = roleIds.includes(adminRoleId)
+
+          if (!hasAdminRole) {
+            if (wantsJSON) {
+              response = NextResponse.json(
+                {
+                  error: 'Forbidden: Admin role required'
+                },
+                {
+                  status: 403
+                }
+              )
+            } else {
+              response = NextResponse.redirect(new URL('/auth/login', request.url))
+            }
+          }
+        } else {
+          // User has no roles assigned
+          if (wantsJSON) {
+            response = NextResponse.json(
+              {
+                error: 'Forbidden: Admin role required'
+              },
+              {
+                status: 403
+              }
+            )
+          } else {
+            response = NextResponse.redirect(new URL('/auth/login', request.url))
+          }
+        }
+      } catch (error) {
+        console.error('Error checking user roles:', error)
+        if (wantsJSON) {
+          response = NextResponse.json(
+            {
+              error: 'Internal server error'
+            },
+            {
+              status: 500
+            }
+          )
+        } else {
+          response = NextResponse.redirect(new URL('/auth/login', request.url))
+        }
       }
     }
   }

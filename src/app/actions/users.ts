@@ -1,7 +1,8 @@
 'use server';
 
 import { auth } from '@/firebase/server';
-import { User } from '@/types';
+import { firestore } from '@/firebase/server';
+import { User, Role } from '@/types';
 import { revalidatePath } from 'next/cache';
 
 export async function listUsers(
@@ -61,5 +62,59 @@ export async function updateUser(uid: string, user: Partial<User>): Promise<User
   } catch (error) {
     console.error('Error updating user:', error);
     return null;
+  }
+}
+
+export async function getUserRoles(uid: string): Promise<Role[]> {
+  try {
+    const userRolesDoc = await firestore.collection('userRoles').doc(uid).get();
+    
+    if (!userRolesDoc.exists) {
+      return [];
+    }
+    
+    const data = userRolesDoc.data();
+    const roleIds: string[] = data?.roleIds || [];
+    
+    if (roleIds.length === 0) {
+      return [];
+    }
+    
+    const roles: Role[] = [];
+    const rolePromises = roleIds.map(async (roleId) => {
+      const roleDoc = await firestore.collection('roles').doc(roleId).get();
+      if (roleDoc.exists) {
+        const roleData = roleDoc.data();
+        roles.push({
+          id: roleDoc.id,
+          name: roleData?.name || '',
+          description: roleData?.description || '',
+          createdAt: roleData?.createdAt?.toDate(),
+          updatedAt: roleData?.updatedAt?.toDate(),
+        });
+      }
+    });
+    
+    await Promise.all(rolePromises);
+    
+    return roles;
+  } catch (error) {
+    console.error('Error fetching user roles:', error);
+    return [];
+  }
+}
+
+export async function assignUserRoles(uid: string, roleIds: string[]): Promise<boolean> {
+  try {
+    await firestore.collection('userRoles').doc(uid).set({
+      roleIds,
+      updatedAt: new Date(),
+    }, { merge: true });
+    
+    revalidatePath('/admin/users');
+    return true;
+  } catch (error) {
+    console.error('Error assigning user roles:', error);
+    return false;
   }
 }

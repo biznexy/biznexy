@@ -7,6 +7,7 @@ import { Vibrant } from 'node-vibrant/node'
 import { writeFile, unlink } from 'fs/promises'
 import { join } from 'path'
 import { tmpdir } from 'os'
+import { generateId } from "@/firebase/server/firestore"
 
 const colorSwatch = z.object({
   hex: z.string(),
@@ -65,7 +66,7 @@ const generateImage = googleImagen.defineTool(
     const mimeType = parsedData.mimeType.toString()
     const extension = mimeType.split('/')[1] || "png"
 
-    const imageId = crypto.randomUUID()
+    const imageId = generateId()
 
     const sharp = getSharp(1)
     const imageMetadata = await sharp(imageBuffer).metadata()

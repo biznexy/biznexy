@@ -1,4 +1,6 @@
-import { firestore } from ".";
+import { CollectionReference } from "firebase-admin/firestore"
+import { firestore } from "."
+import crypto from "crypto"
 
 const collectionRef = (path: string) => firestore.collection(path)
 const docRef = (collectionPath: string, docPath: string) => collectionRef(collectionPath).doc(docPath)
@@ -22,6 +24,26 @@ const findData = async (collection: string, key: string, value: any) => {
   return doc?.data()
 }
 
+const generateId = () => {
+  return crypto.randomBytes(8).toString("base64url").slice(0, 11)
+}
+
+const createDoc = async (collectionRef: CollectionReference, data: FirebaseFirestore.WithFieldValue<FirebaseFirestore.DocumentData>) => {
+  while (true) {
+    const id = generateId()
+    const ref = collectionRef.doc(id)
+
+    try {
+      await firestore.runTransaction(async (tx) => {
+        tx.create(ref, data)
+      })
+      return id
+    } catch (err) {
+      // collision — ultra-rare
+    }
+  }
+}
+
 export {
   collectionRef,
   docRef,
@@ -29,5 +51,7 @@ export {
   whereDoc,
   findDoc,
   getData,
-  findData
+  findData,
+  createDoc,
+  generateId
 }

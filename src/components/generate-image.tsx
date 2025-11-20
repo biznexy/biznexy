@@ -1,33 +1,42 @@
 "use client"
 
 import { InputGroup, InputGroupAddon, InputGroupButton } from "@/components/ui/input-group";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import TextareaAutosize from 'react-textarea-autosize'
 import { toast } from "sonner";
 
 export default function GenerateImage() {
+  const router = useRouter()
   const [prompt, setPrompt] = useState("")
   const [generating, setGenerating] = useState(false)
 
   const generate = () => {
     setGenerating(true)
-    fetch("/admin/images/generate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt }),
-    }).then((response) => {
-      if (!response.ok) {
-        throw new Error("Error generating image")
-      }
-      response.json().then(() => {
-        toast.success("Image generated")
-        setPrompt("")
+    toast.promise(() => new Promise((resolve, reject) => {
+      fetch("/admin/images/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt }),
+      }).then((response) => {
+        if (!response.ok) {
+          reject()
+          return
+        }
+        response.json().then(() => {
+          resolve(true)
+          setPrompt("")
+          router.refresh()
+        })
+      }).catch((err) => {
+        reject()
+      }).finally(() => {
+        setGenerating(false)
       })
-    }).catch((err) => {
-      console.error("Error generating image:", err)
-      toast.error("Error generating image")
-    }).finally(() => {
-      setGenerating(false)
+    }), {
+      loading: "Generating the image...",
+      success: "Image generated successfully.",
+      error: "Image generation failed."
     })
   }
 
