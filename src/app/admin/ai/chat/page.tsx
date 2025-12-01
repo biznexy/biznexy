@@ -6,6 +6,7 @@ import chatFlow from "@/genkit/flows/chatFlow"
 import ChatPrompt from "@/components/ai/chat/prompt"
 import Message from "@/components/ai/chat/message"
 import { MessageType, ModelType } from "@/types/ai/chat"
+import { Provider } from "@/config/ai"
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<MessageType[]>([])
@@ -33,7 +34,7 @@ export default function ChatPage() {
         name: "Model",
         key: "gemini-2.5-flash-lite",
         type: 1,
-        provider: "Google",
+        provider: Provider.Google,
         title: "gemini 2.5 flash lite",
       },
     })
