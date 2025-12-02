@@ -52,6 +52,13 @@ const createDoc = async (ref: DocumentReference, data: FirebaseFirestore.WithFie
   await ref.create(data)
 }
 
+const updateDoc = async (ref: DocumentReference, data: FirebaseFirestore.WithFieldValue<FirebaseFirestore.DocumentData>) => {
+  data.updatedAt = FieldValue.serverTimestamp()
+  await ref.update(data)
+}
+
+const writeBatch = () => firestore.batch()
+
 export {
   collectionRef,
   docRef,
@@ -62,5 +69,7 @@ export {
   findData,
   addDoc,
   createDoc,
-  generateId
+  updateDoc,
+  generateId,
+  writeBatch
 }
