@@ -1,6 +1,6 @@
 'use client';
 
-import { Model } from '@/types/ai/chat';
+import { Chatbot } from '@/types/ai/chat';
 import { useState } from 'react';
 import { columns } from './columns';
 import { DataTable } from '@/components/data-table';
@@ -21,22 +21,22 @@ import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 
 interface ChatbotsTableProps {
-  initialChatbots: Model[];
+  initialChatbots: Chatbot[];
 }
 
 export default function ChatbotsTable({ initialChatbots }: ChatbotsTableProps) {
-  const [chatbots] = useState<Model[]>(initialChatbots);
+  const [chatbots] = useState<Chatbot[]>(initialChatbots);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedChatbot, setSelectedChatbot] = useState<Model | null>(null);
+  const [selectedChatbot, setSelectedChatbot] = useState<Chatbot | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [chatbotToDelete, setChatbotToDelete] = useState<Model | null>(null);
+  const [chatbotToDelete, setChatbotToDelete] = useState<Chatbot | null>(null);
 
-  const handleEdit = (chatbot: Model) => {
+  const handleEdit = (chatbot: Chatbot) => {
     setSelectedChatbot(chatbot);
     setDialogOpen(true);
   };
 
-  const handleDeleteClick = (chatbot: Model) => {
+  const handleDeleteClick = (chatbot: Chatbot) => {
     setChatbotToDelete(chatbot);
     setDeleteDialogOpen(true);
   };

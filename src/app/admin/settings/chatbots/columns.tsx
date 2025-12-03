@@ -1,20 +1,20 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { Model, PromptType } from '@/types/ai/chat';
+import { Chatbot } from '@/types/ai/chat';
 import { DataTableActionsMenu } from '@/components/data-table';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { modelTypeIcons, Provider } from '@/config/ai';
 
 interface ColumnsProps {
-  onEdit: (chatbot: Model) => void;
-  onDelete: (chatbot: Model) => void;
+  onEdit: (chatbot: Chatbot) => void;
+  onDelete: (chatbot: Chatbot) => void;
 }
 
 export const columns = ({
   onEdit,
   onDelete,
-}: ColumnsProps): ColumnDef<Model>[] => [
+}: ColumnsProps): ColumnDef<Chatbot>[] => [
     {
       accessorKey: 'promptType',
       header: 'Type',
