@@ -10,6 +10,7 @@ export type Chatbot = {
   promptType: PromptType
   name: string
   provider: Provider
+  instructions?: string
 }
 export type Model = {
   id: string
