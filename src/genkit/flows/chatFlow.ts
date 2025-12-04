@@ -18,7 +18,7 @@ const chatFlow = googleChatbot.defineFlow({
     message: z.string(),
     model: z.string().optional(),
   }),
-}, async ({ sessionId, chatId, promptMessage, promptType }, { sendChunk }) => {
+}, async ({ sessionId, chatId, promptMessage, promptType }, { context, sendChunk }) => {
   let session: Session<DocumentData>
   const sessionStore = new GenkitSessionStore()
   const isNewSession = !sessionId
@@ -50,21 +50,36 @@ const chatFlow = googleChatbot.defineFlow({
     sendChunk(chunk.text)
   }
 
+  if (!chatId) {
+    const ref = collectionRef("aiChats")
+    chatId = await addDoc(ref, {
+      sessionId,
+    })
+  }
+
+  const ref = collectionRef("aiChatMessages")
+
+  const userId = context.auth?.userId
+  await addDoc(ref, {
+    chatId,
+    text: promptMessage,
+    role: "user",
+    userId,
+  })
+
   const { text, model } = await response
 
-  // const ref = collectionRef("admin/ai/chats")
-  // const chatId = await addDoc(ref, {
-  //   sessionId,
-  //   promptMessage,
-  //   promptType,
-  //   model,
-  // })
+  await addDoc(ref, {
+    chatId,
+    text,
+    role: "model",
+  })
 
   return {
-    // chatId,
+    chatId,
     sessionId,
     message: text,
-    model,
+    promptType,
   }
 })
 
