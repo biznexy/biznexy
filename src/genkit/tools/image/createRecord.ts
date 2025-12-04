@@ -1,8 +1,7 @@
-import googleImagen from "@/genkit/google/imagen";
-import { z } from "genkit";
-import { imageGenerateOutputSchema } from "./generate";
-import { firestore } from "@/firebase/server";
-import { FieldValue } from "firebase-admin/firestore";
+import googleImagen from "@/genkit/google/imagen"
+import { z } from "genkit"
+import { imageGenerateOutputSchema } from "./generate"
+import { createDoc, docRef } from "@/firebase/server/firestore"
 
 const createImageRecord = googleImagen.defineTool(
   {
@@ -12,8 +11,8 @@ const createImageRecord = googleImagen.defineTool(
     outputSchema: z.boolean().describe("Whether the record was created successfully"),
   },
   async (imageData) => {
-    const imageRef = firestore.collection("images").doc(imageData.imageId)
-    await imageRef.create({ ...imageData, createdAt: FieldValue.serverTimestamp() })
+    const imageRef = docRef("images", imageData.imageId)
+    await createDoc(imageRef, imageData)
     return true
   }
 )

@@ -11,7 +11,7 @@ const adminPaths = [
 const userPaths = [
   '/app',
   '/account',
-  '/api/sign-out',
+  '/api/user',
 ]
 
 const pathsRequireAuth = [

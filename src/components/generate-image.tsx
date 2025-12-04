@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import TextareaAutosize from 'react-textarea-autosize'
 import { toast } from "sonner";
+import { runFlow } from '@genkit-ai/next/client'
+import imageFlow from "@/genkit/flows/imageFlow";
 
 export default function GenerateImage() {
   const router = useRouter()
@@ -14,22 +16,19 @@ export default function GenerateImage() {
   const generate = () => {
     setGenerating(true)
     toast.promise(() => new Promise((resolve, reject) => {
-      fetch("/admin/images/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt }),
-      }).then((response) => {
-        if (!response.ok) {
+      runFlow<typeof imageFlow>({
+        url: "/admin/images/generate",
+        input: { prompt },
+      }).then((result) => {
+        if (!result) {
           reject()
           return
         }
-        response.json().then(() => {
-          resolve(true)
-          setPrompt("")
-          router.refresh()
-        })
+        resolve(true)
+        setPrompt("")
+        router.refresh()
       }).catch((err) => {
-        reject()
+        reject(err)
       }).finally(() => {
         setGenerating(false)
       })

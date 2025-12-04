@@ -23,7 +23,7 @@ export default function AppLayout({
 }) {
   return (
     <SidebarProvider className="flex flex-col items-center justify-between min-h-dvh">
-      <Header />
+      <Header hasSidebar={true} />
       <div className="w-full flex flex-1">
         <AppSidebar />
         <SidebarInset className="flex flex-col items-center justify-between min-h-[calc(100svh-var(--header-height))]">

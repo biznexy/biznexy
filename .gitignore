@@ -17,6 +17,7 @@
 # next.js
 /.next/
 /out/
+/.swc
 
 # production
 /build
@@ -47,3 +48,6 @@ pglite-debug.log
 .firebaserc
 src/app/(plugins)/*
 !src/app/(plugins)/.gitkeep
+
+# genkit
+.genkit
