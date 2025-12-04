@@ -12,7 +12,7 @@ type ChatPromptProps = {
 
 export default function ChatPrompt({ className, onSend, ...props }: ChatPromptProps) {
   const [promptMessage, setPromptMessage] = useState("")
-  const [promptType, setModelType] = useState<PromptType>(PromptType.Chat)
+  const [promptType, setPromptType] = useState<PromptType>(PromptType.Chat)
   const length = promptMessage.trim().length
   const disabled = length <= 2
 
@@ -40,7 +40,7 @@ export default function ChatPrompt({ className, onSend, ...props }: ChatPromptPr
         className="min-h-12"
       />
       <InputGroupAddon align="block-end">
-        <ModelTypeInput promptType={promptType} setModelType={setModelType} />
+        <ModelTypeInput promptType={promptType} setPromptType={setPromptType} />
         <InputGroupButton
           variant="default"
           className="rounded-full ml-auto"
