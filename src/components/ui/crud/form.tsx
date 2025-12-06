@@ -2,13 +2,13 @@
 
 type CrudFormProps = {
   children: React.ReactNode
-} & React.FormHTMLAttributes<HTMLFormElement>
+} & React.HTMLAttributes<HTMLDivElement>
 
 const CrudForm = ({ children, ...props }: CrudFormProps) => {
   return (
-    <form {...props}>
+    <div {...props}>
       {children}
-    </form>
+    </div>
   )
 }
 
