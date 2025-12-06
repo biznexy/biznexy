@@ -13,15 +13,15 @@ import {
   Drawer,
   DrawerClose,
   DrawerContent,
-  DrawerDescription,  
+  DrawerDescription,
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer"
-import { createContext, useContext, useState } from "react"
+import { createContext, useContext } from "react"
 
-const DrawerDialogContext = createContext<{ isDesktop: boolean; open: boolean; setOpen: (v: boolean) => void } | null>(null)
+const DrawerDialogContext = createContext<{ isDesktop: boolean } | null>(null)
 
 export function useDrawerDialog() {
   const ctx = useContext(DrawerDialogContext)
@@ -29,16 +29,21 @@ export function useDrawerDialog() {
   return ctx
 }
 
+type DrawerDialogProps = {
+  open?: boolean
+  onOpenChange?: (v: boolean) => void
+  children: React.ReactNode
+}
 
-export function DrawerDialog({ children }: { children: React.ReactNode }) {
-  const [open, setOpen] = useState(false)
+export function DrawerDialog({ children, open = false, onOpenChange }: DrawerDialogProps) {
+  onOpenChange = onOpenChange || (() => { })
   const isDesktop = useMediaQuery("(min-width: 768px)")
 
   const Wrapper = isDesktop ? Dialog : Drawer
 
   return (
-    <DrawerDialogContext.Provider value={{ isDesktop, open, setOpen }}>
-      <Wrapper open={open} onOpenChange={setOpen}>
+    <DrawerDialogContext.Provider value={{ isDesktop }}>
+      <Wrapper open={open} onOpenChange={onOpenChange}>
         {children}
       </Wrapper>
     </DrawerDialogContext.Provider>
