@@ -1,6 +1,7 @@
 'use server';
 
 import { firestore } from '@/firebase/server';
+import { addDoc } from '@/firebase/server/firestore';
 import { Chatbot, Model } from '@/types/ai/chat';
 import { revalidatePath } from 'next/cache';
 
@@ -21,10 +22,10 @@ export async function listChatbots(): Promise<Chatbot[]> {
 
 export async function addChatbot(chatbot: Omit<Chatbot, 'id'>): Promise<Chatbot | null> {
   try {
-    const docRef = await firestore.collection(COLLECTION_NAME).add(chatbot);
+    const id = await addDoc(firestore.collection(COLLECTION_NAME), chatbot)
     revalidatePath('/admin/settings/chatbots');
     return {
-      id: docRef.id,
+      id,
       ...chatbot,
     };
   } catch (error) {
